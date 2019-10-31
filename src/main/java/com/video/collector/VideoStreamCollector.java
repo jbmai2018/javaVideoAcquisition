@@ -79,6 +79,13 @@ public class VideoStreamCollector {
 //		if(urls.length != ids.length){
 //			throw new Exception("There should be same number of camera Id and url");
 //		}
+
+        //test array for testing on webcam
+        ArrayList<String> cameraEntryArray2 = new ArrayList<String>();
+        cameraEntryArray2.add("0,webcam");
+        cameraEntryArray2.add("1,webcam2");
+        cameraEntryArray = cameraEntryArray2;
+
         logger.info("Total urls to process "+cameraEntryArray.size());
         for(int pIndex=0;pIndex<cameraEntryArray.size();pIndex++){
             Thread t = new Thread(new VideoEventGenerator(cameraEntryArray.get(pIndex).split(",")[1],cameraEntryArray.get(pIndex).split(",")[0],producer,topic, pIndex));
