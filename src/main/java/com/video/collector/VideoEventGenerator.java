@@ -76,16 +76,14 @@ public class VideoEventGenerator implements Runnable {
             camera = new VideoCapture(url);
         }
 
-        //getting the FPS
-//        camera.get(Videoio.CAP_PROP_FPS);
-        //setting the FPS
-//        camera.set(Videoio.CAP_PROP_FPS,1.0);
-
         //check camera working
         if (!camera.isOpened()) {
             Thread.sleep(5000);
             if (!camera.isOpened()) {
-                throw new Exception("Error opening cameraId "+cameraId+" with url="+url+".Set correct file path or url in camera.url key of property file.");
+                logger.info("Error opening cameraId "+cameraId+" with url="+url+".Set correct file path or url in camera.url key of property file.");
+                generateEvent(cameraId,url,producer,topic,partition);
+//                throw new Exception("Error opening cameraId "+cameraId+" with url="+url+".Set correct file path or url in camera.url key of property file.");
+
             }
         }
 
@@ -93,9 +91,9 @@ public class VideoEventGenerator implements Runnable {
         Mat mat = new Mat();
         Gson gson = new Gson();
 
-        MatOfByte buffer = new MatOfByte();;
-        MatOfInt compressParams;
-        compressParams = new MatOfInt(Imgcodecs.CV_IMWRITE_JPEG_QUALITY, 1);
+//        MatOfByte buffer = new MatOfByte();;
+//        MatOfInt compressParams;
+//        compressParams = new MatOfInt(Imgcodecs.CV_IMWRITE_JPEG_QUALITY, 1);
 
         while (true) {
             try {
@@ -135,19 +133,25 @@ public class VideoEventGenerator implements Runnable {
 //                    frame.getContentPane().add(new JLabel(new ImageIcon(bufferedImage)));
 //                    frame.pack();
 //                    frame.setVisible(true);
+
+                } else {
+                    logger.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+                    logger.info(camera.isOpened());
+                    logger.info("Camera " + cameraId + " stopped giving frames");
+                    break;
                 }
 
                 //every 2 seconds
-                Thread.sleep(2000);
+//                Thread.sleep(2000);
 
             } catch (Exception e) {
                 logger.error(e.getMessage());
-                continue;
             }
         }
-//        logger.info("Exiting Cameraaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-//        camera.release();
-//        mat.release();
+        logger.info("Exiting Cameraaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        camera.release();
+        mat.release();
+        generateEvent(cameraId,url,producer,topic,partition);
     }
 
     private static BufferedImage matToBufferedImage(Mat frame) {
