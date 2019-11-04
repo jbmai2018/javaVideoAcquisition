@@ -72,9 +72,16 @@ public class VideoEventGenerator implements Runnable {
         VideoCapture camera = null;
         if(StringUtils.isNumeric(url)){
             camera = new VideoCapture(Integer.parseInt(url));
-        }else{
+        } else {
             camera = new VideoCapture(url);
         }
+
+        //works only with video files
+        double fps = camera.get(Videoio.CAP_PROP_FPS);
+        System.out.println( "(before setting) FPS: " + fps);
+        camera.set(Videoio.CAP_PROP_FPS, 1.0);
+        fps = camera.get(Videoio.CAP_PROP_FPS);
+        System.out.println( "FPS: " + fps);
 
         //check camera working
         if (!camera.isOpened()) {
@@ -83,7 +90,6 @@ public class VideoEventGenerator implements Runnable {
                 logger.info("Error opening cameraId "+cameraId+" with url="+url+".Set correct file path or url in camera.url key of property file.");
                 generateEvent(cameraId,url,producer,topic,partition);
 //                throw new Exception("Error opening cameraId "+cameraId+" with url="+url+".Set correct file path or url in camera.url key of property file.");
-
             }
         }
 
@@ -142,13 +148,13 @@ public class VideoEventGenerator implements Runnable {
                 }
 
                 //every 2 seconds
-//                Thread.sleep(2000);
+                Thread.sleep(1000);
 
             } catch (Exception e) {
                 logger.error(e.getMessage());
             }
         }
-        logger.info("Exiting Cameraaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        logger.info("Exiting Camera");
         camera.release();
         mat.release();
         generateEvent(cameraId,url,producer,topic,partition);

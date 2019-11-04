@@ -34,6 +34,7 @@ public class VideoStreamCollector {
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
         MongoClient mongoClient = MongoClients.create();
+//        MongoClient mongoClient = MongoClients.create("mongodb://jbmTest3:jbm%40234@localhost:27017/?authMechanism=SCRAM-SHA-1&authSource=admin");
         MongoDatabase database = mongoClient.getDatabase("jbmDB");
         MongoCollection<Document> collection = database.getCollection("cameras");
 
