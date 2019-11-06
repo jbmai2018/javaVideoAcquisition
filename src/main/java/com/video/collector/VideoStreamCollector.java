@@ -33,8 +33,8 @@ public class VideoStreamCollector {
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        MongoClient mongoClient = MongoClients.create();
-//        MongoClient mongoClient = MongoClients.create("mongodb://jbmTest3:jbm%40234@localhost:27017/?authMechanism=SCRAM-SHA-1&authSource=admin");
+//        MongoClient mongoClient = MongoClients.create();
+        MongoClient mongoClient = MongoClients.create("mongodb://jbmTest3:jbm%40234@localhost:27017/?authMechanism=SCRAM-SHA-1&authSource=admin");
         MongoDatabase database = mongoClient.getDatabase("jbmDB");
         MongoCollection<Document> collection = database.getCollection("cameras");
 
@@ -47,25 +47,29 @@ public class VideoStreamCollector {
 
         for (Document camera : cameras) {
 
-            String rtspLink = "rtsp://";
-            Document login = (Document) camera.get("login");
-            String username = login.getString("username");
-            rtspLink += username;
-            String password = login.getString("password");
-            if(password.equals("password@123")){
-                password = "password%40123";
+            List<Document> deploymentDetails = (List<Document>) camera.get("deploymentDetails");
+            String x = (String) deploymentDetails.get(0).get("microserviceName");
+            if(x.equals("faceRecog")) {
+                String rtspLink = "rtsp://";
+                Document login = (Document) camera.get("login");
+                String username = login.getString("username");
+                rtspLink += username;
+                String password = login.getString("password");
+                if(password.equals("password@123")){
+                    password = "password%40123";
+                }
+                rtspLink += ":" + password;
+                rtspLink += "@";
+
+                Document hardware = (Document) camera.get("hardware");
+                String ip = hardware.getString("ip");
+                rtspLink += ip;
+                rtspLink += "/live/0/MAIN";
+
+                String camId = camera.getString("camName");
+                String cameraEntry = rtspLink + "," + camId;
+                cameraEntryArray.add(cameraEntry);
             }
-            rtspLink += ":" + password;
-            rtspLink += "@";
-
-            Document hardware = (Document) camera.get("hardware");
-            String ip = hardware.getString("ip");
-            rtspLink += ip;
-            rtspLink += "/live/0/MAIN";
-
-            String camId = camera.getString("camName");
-            String cameraEntry = rtspLink + "," + camId;
-            cameraEntryArray.add(cameraEntry);
 //			System.out.println(cameraEntryArray);
         }
 
