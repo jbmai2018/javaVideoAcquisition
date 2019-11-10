@@ -6,7 +6,8 @@ import java.awt.image.WritableRaster;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.Base64;
+import java.util.*;
+import java.util.Timer;
 
 import com.video.util.NativeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -57,6 +58,16 @@ public class VideoEventGenerator implements Runnable {
         }
     }
 
+    //custom ArrayList adapter
+    class FrameArrayList {
+        Mat mat;
+        Timestamp timestamp;
+        FrameArrayList(Mat mat, Timestamp timestamp) {
+            this.mat = mat;
+            this.timestamp = timestamp;
+        }
+    }
+
     @Override
     public void run() {
         logger.info("Processing cameraId "+cameraId+" with url "+url);
@@ -97,67 +108,54 @@ public class VideoEventGenerator implements Runnable {
         Mat mat = new Mat();
         Gson gson = new Gson();
 
-//        MatOfByte buffer = new MatOfByte();;
-//        MatOfInt compressParams;
-//        compressParams = new MatOfInt(Imgcodecs.CV_IMWRITE_JPEG_QUALITY, 1);
-
         while (true) {
-            try {
-                if(camera.read(mat)){
-                    //resize image before sending
-//                    Imgproc.resize(mat, mat, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);
-//                    Imgcodecs.imencode(".jpg", mat, buffer, compressParams);
-//                    byte[] data = new byte[(int) (buffer.total() * buffer.elemSize())];
-//                    buffer.get(0, 0, data);
+            Calendar cal = Calendar.getInstance();
+            System.out.println("Loop Started !!");
 
-                    MatOfByte matOfByte = new MatOfByte();
-                    Imgcodecs.imencode(".jpg", mat, matOfByte);
-                    byte[] data = matOfByte.toArray();
+            ArrayList<FrameArrayList> frameArray = new ArrayList<FrameArrayList>();
+            //.toByteArray(); for each element
 
-                    //store buffered image
-//                    BufferedImage bufferedImage = matToBufferedImage(mat);
-//                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//                    ImageIO.write(bufferedImage, "jpg", bos );
-//                    byte [] data = bos.toByteArray();
+            while (System.currentTimeMillis() < cal.getTimeInMillis() + 1000) {
+//                System.out.println("" + System.currentTimeMillis() + "       start  " + cal.getTimeInMillis() + 1000);
+                try {
+                    if(camera.read(mat)) {
+                        FrameArrayList frameArrayList = new FrameArrayList(mat, new Timestamp(System.currentTimeMillis()));
+                        frameArray.add(frameArrayList);
+                    } else {
+                        logger.info(camera.isOpened());
+                        logger.info("Camera " + cameraId + " stopped giving frames");
+                        break;
+                    }
 
-                    String timestamp = new Timestamp(System.currentTimeMillis()).toString();
-                    JsonObject obj = new JsonObject();
-                    obj.addProperty("cameraId",cameraId);
-                    obj.addProperty("timestamp", timestamp);
-                    obj.addProperty("data", Base64.getEncoder().encodeToString(data));
-                    String json = gson.toJson(obj);
-                    producer.send(new ProducerRecord<String, String>(topic,partition,cameraId,json),new EventGeneratorCallback(cameraId));
-                    logger.info("Generated events for cameraId="+cameraId+" timestamp="+timestamp + " partition=" + partition);
-
-                    //test base64 conversion
-//                    String bytesEncoded = Base64.getEncoder().encodeToString("sahil is a good boy".getBytes());
-//                    logger.info("base64 string : " + bytesEncoded);
-
-//                    //Instantiate JFrame
-//                    JFrame frame = new JFrame();
-//                    //Set Content to the JFrame
-//                    frame.getContentPane().add(new JLabel(new ImageIcon(bufferedImage)));
-//                    frame.pack();
-//                    frame.setVisible(true);
-
-                } else {
-                    logger.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-                    logger.info(camera.isOpened());
-                    logger.info("Camera " + cameraId + " stopped giving frames");
-                    break;
+                } catch (Exception e) {
+                    logger.error(e.getMessage());
+                    logger.info("Exiting Camera");
+                    camera.release();
+                    mat.release();
+                    try {
+                        generateEvent(cameraId,url,producer,topic,partition);
+                    } catch (Exception e2) {
+                        e2.printStackTrace();
+                    }
                 }
-
-                //every 2 seconds
-                Thread.sleep(1000);
-
-            } catch (Exception e) {
-                logger.error(e.getMessage());
             }
+
+            FrameArrayList frameInfo = frameArray.get(0);
+            mat = frameInfo.mat;
+            MatOfByte matOfByte = new MatOfByte();
+            Imgcodecs.imencode(".jpg", mat, matOfByte);
+            byte[] data = matOfByte.toArray();
+
+            String timestamp = frameInfo.timestamp.toString();
+            JsonObject obj = new JsonObject();
+            obj.addProperty("cameraId",cameraId);
+            obj.addProperty("timestamp", timestamp);
+            obj.addProperty("data", Base64.getEncoder().encodeToString(data));
+            String json = gson.toJson(obj);
+            producer.send(new ProducerRecord<String, String>(topic,partition,cameraId,json),new EventGeneratorCallback(cameraId));
+            logger.info("Generated events for cameraId="+cameraId+" timestamp="+timestamp + " partition=" + partition);
+
         }
-        logger.info("Exiting Camera");
-        camera.release();
-        mat.release();
-        generateEvent(cameraId,url,producer,topic,partition);
     }
 
     private static BufferedImage matToBufferedImage(Mat frame) {

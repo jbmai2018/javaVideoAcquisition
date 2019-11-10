@@ -33,8 +33,8 @@ public class VideoStreamCollector {
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-//        MongoClient mongoClient = MongoClients.create();
-        MongoClient mongoClient = MongoClients.create("mongodb://jbmTest3:jbm%40234@localhost:27017/?authMechanism=SCRAM-SHA-1&authSource=admin");
+        MongoClient mongoClient = MongoClients.create();
+//        MongoClient mongoClient = MongoClients.create("mongodb://jbmTest3:jbm%40234@localhost:27017/?authMechanism=SCRAM-SHA-1&authSource=admin");
         MongoDatabase database = mongoClient.getDatabase("jbmDB");
         MongoCollection<Document> collection = database.getCollection("cameras");
 
@@ -86,10 +86,10 @@ public class VideoStreamCollector {
 //		}
 
         //test array for testing on webcam
-//        ArrayList<String> cameraEntryArray2 = new ArrayList<String>();
-//        cameraEntryArray2.add("0,webcam");
+        ArrayList<String> cameraEntryArray2 = new ArrayList<String>();
+        cameraEntryArray2.add("0,webcam");
 //        cameraEntryArray2.add("1,webcam2");
-//        cameraEntryArray = cameraEntryArray2;
+        cameraEntryArray = cameraEntryArray2;
 
         logger.info("Total urls to process "+cameraEntryArray.size());
         for(int pIndex=0;pIndex<cameraEntryArray.size();pIndex++){
