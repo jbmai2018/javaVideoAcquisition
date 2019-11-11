@@ -108,6 +108,8 @@ public class VideoEventGenerator implements Runnable {
         Mat mat = new Mat();
         Gson gson = new Gson();
 
+        int sizeOfFrameArray = 0;
+
         while (true) {
             Calendar cal = Calendar.getInstance();
             System.out.println("Loop Started !!");
@@ -123,38 +125,44 @@ public class VideoEventGenerator implements Runnable {
                         frameArray.add(frameArrayList);
                     } else {
                         logger.info(camera.isOpened());
-                        logger.info("Camera " + cameraId + " stopped giving frames");
+                        logger.info("Camera " + cameraId + " No Frame Recieved");
                         break;
                     }
 
                 } catch (Exception e) {
                     logger.error(e.getMessage());
-                    logger.info("Exiting Camera");
-                    camera.release();
-                    mat.release();
                     try {
                         generateEvent(cameraId,url,producer,topic,partition);
                     } catch (Exception e2) {
+                        logger.info("Exiting Camera");
+                        camera.release();
+                        mat.release();
                         e2.printStackTrace();
                     }
                 }
             }
 
-            FrameArrayList frameInfo = frameArray.get(0);
-            mat = frameInfo.mat;
-            MatOfByte matOfByte = new MatOfByte();
-            Imgcodecs.imencode(".jpg", mat, matOfByte);
-            byte[] data = matOfByte.toArray();
+            sizeOfFrameArray = frameArray.size();
+            if(sizeOfFrameArray > 0) {
+                FrameArrayList frameInfo = frameArray.get(0);
+                mat = frameInfo.mat;
+                MatOfByte matOfByte = new MatOfByte();
+                Imgcodecs.imencode(".jpg", mat, matOfByte);
+                byte[] data = matOfByte.toArray();
 
-            String timestamp = frameInfo.timestamp.toString();
-            JsonObject obj = new JsonObject();
-            obj.addProperty("cameraId",cameraId);
-            obj.addProperty("timestamp", timestamp);
-            obj.addProperty("data", Base64.getEncoder().encodeToString(data));
-            String json = gson.toJson(obj);
-            producer.send(new ProducerRecord<String, String>(topic,partition,cameraId,json),new EventGeneratorCallback(cameraId));
-            logger.info("Generated events for cameraId="+cameraId+" timestamp="+timestamp + " partition=" + partition);
+                String timestamp = frameInfo.timestamp.toString();
+                JsonObject obj = new JsonObject();
+                obj.addProperty("cameraId",cameraId);
+                obj.addProperty("timestamp", timestamp);
+                obj.addProperty("data", Base64.getEncoder().encodeToString(data));
+                String json = gson.toJson(obj);
+                producer.send(new ProducerRecord<String, String>(topic,partition,cameraId,json),new EventGeneratorCallback(cameraId));
+                logger.info("Generated events for cameraId="+cameraId+" timestamp="+timestamp + " partition=" + partition);
 
+            } else {
+                logger.info("Starting Camera" + cameraId);  
+                generateEvent(cameraId,url,producer,topic,partition);
+            }
         }
     }
 
