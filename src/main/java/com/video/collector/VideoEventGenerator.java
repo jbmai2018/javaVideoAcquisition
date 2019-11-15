@@ -165,7 +165,7 @@ public class VideoEventGenerator implements Runnable {
                 logger.info("Generated events for cameraId="+cameraId+" timestamp="+timestamp + " partition=" + partition);
 
             } else {
-                logger.info("Starting Camera" + cameraId);  
+                logger.info("Starting Camera" + cameraId);
                 generateEvent(cameraId,url,producer,topic,partition);
             }
         }
