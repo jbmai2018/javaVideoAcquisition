@@ -75,6 +75,11 @@ public class VideoEventGenerator implements Runnable {
             generateEvent(cameraId,url,producer,topic,partition);
         } catch (Exception e) {
             logger.error(e.getMessage());
+            try {
+                generateEvent(cameraId,url,producer,topic,partition);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
