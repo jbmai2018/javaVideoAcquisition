@@ -135,6 +135,7 @@ public class VideoEventGenerator implements Runnable {
                     }
 
                 } catch (Exception e) {
+                    logger.info("Camera " + cameraId + " Error occured");
                     logger.error(e.getMessage());
                     try {
                         generateEvent(cameraId,url,producer,topic,partition);
