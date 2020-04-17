@@ -4,6 +4,7 @@
     <JAVADOC />
     <NATIVE>
       <root url="file://$USER_HOME$/opencv_build/opencv/build/lib" />
+<!--      <root url="file://$PROJECT_DIR$/../opencv_build/opencv/build/lib" />-->
     </NATIVE>
     <SOURCES />
   </library>
