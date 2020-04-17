@@ -96,8 +96,8 @@ public class VideoEventGenerator implements Runnable {
         //works only with video files
         double fps = camera.get(Videoio.CAP_PROP_FPS);
         System.out.println( "(before setting) FPS: " + fps);
-        camera.set(Videoio.CAP_PROP_FPS, 1.0);
-        fps = camera.get(Videoio.CAP_PROP_FPS);
+//        camera.set(Videoio.CAP_PROP_FPS, 1.0);
+//        fps = camera.get(Videoio.CAP_PROP_FPS);
         System.out.println( "FPS: " + fps);
 
         //check camera working
