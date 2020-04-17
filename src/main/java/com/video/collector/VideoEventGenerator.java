@@ -35,6 +35,7 @@ public class VideoEventGenerator implements Runnable {
     private Producer<String, String> producer;
     private String topic;
     private Integer partition;
+    private JsonObject networkDowntime;
 
     public VideoEventGenerator(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition) {
         this.cameraId = cameraId;
@@ -140,6 +141,7 @@ public class VideoEventGenerator implements Runnable {
                         generateEvent(cameraId,url,producer,topic,partition);
                     } catch (Exception e2) {
                         logger.info("Exiting Camera");
+//                        networkDowntime.addProperty("downtime", new Timestamp(System.currentTimeMillis());
                         camera.release();
                         mat.release();
                         e2.printStackTrace();

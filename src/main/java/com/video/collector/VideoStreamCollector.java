@@ -88,13 +88,20 @@ public class VideoStreamCollector {
 //		}
 
         //test array for testing on webcam
-        //ArrayList<String> cameraEntryArray2 = new ArrayList<String>();
-        //cameraEntryArray2.add("0,webcam");
-//        cameraEntryArray2.add("1,webcam2");
-        //cameraEntryArray = cameraEntryArray2;
+        ArrayList<String> cameraEntryArray2 = new ArrayList<String>();
+        cameraEntryArray2.add("0,webcam");
+//        cameraEntryArray2.add("rtsp://admin:password123@192.1.13.223/live/0/MAIN,webcam2");
+//        cameraEntryArray2.add("rtsp://admin:password123@192.1.13.224/live/0/MAIN,webcam1");
+
+//        cameraEntryArray2.add("rtsp://admin:Sahil12051994@@192.168.1.64:554/Streaming/Channels/101,webcam1");
+//        cameraEntryArray2.add("rtsp://admin:Sahil12051994@@192.168.1.64:554/Streaming/Channels/201,webcam2");
+//        cameraEntryArray2.add("rtsp://admin:Sahil12051994@@192.168.1.64:554/Streaming/Channels/301,webcam3");
+//        cameraEntryArray2.add("rtsp://admin:Sahil12051994@@192.168.1.64:554/Streaming/Channels/401,webcam4");
+//        cameraEntryArray2.add("rtsp://admin:password123@192.168.1.10:554/1,webcam1");
+        cameraEntryArray = cameraEntryArray2;
 
         logger.info("Total urls to process "+cameraEntryArray.size());
-        for(int pIndex=0;pIndex<cameraEntryArray.size();pIndex++){
+        for(int pIndex=0;pIndex<cameraEntryArray.size();pIndex++) {
             Thread t = new Thread(new VideoEventGenerator(cameraEntryArray.get(pIndex).split(",")[1],cameraEntryArray.get(pIndex).split(",")[0],producer,topic, pIndex));
             t.start();
         }
