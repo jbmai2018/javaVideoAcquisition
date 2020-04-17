@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.videoio.VideoCapture;
 
 import com.google.gson.Gson;
@@ -154,18 +155,34 @@ public class VideoEventGenerator implements Runnable {
             if(sizeOfFrameArray > 0) {
                 FrameArrayList frameInfo = frameArray.get(0);
                 mat = frameInfo.mat;
-                MatOfByte matOfByte = new MatOfByte();
-                Imgcodecs.imencode(".jpg", mat, matOfByte);
-                byte[] data = matOfByte.toArray();
 
-                String timestamp = frameInfo.timestamp.toString();
-                JsonObject obj = new JsonObject();
-                obj.addProperty("cameraId",cameraId);
-                obj.addProperty("timestamp", timestamp);
-                obj.addProperty("data", Base64.getEncoder().encodeToString(data));
-                String json = gson.toJson(obj);
-                producer.send(new ProducerRecord<String, String>(topic,partition,cameraId,json),new EventGeneratorCallback(cameraId));
-                logger.info("Generated events for cameraId="+cameraId+" timestamp="+timestamp + " partition=" + partition);
+//                Mat resizeimage = new Mat();
+//                Size sz = new Size(,100);
+//                Imgproc.resize( mat, resizeimage, sz );
+//                mat = resizeimage;
+
+                String xmlFile = "/home/sahil/gitProgs/frProject/opencv/data/haarcascades/haarcascade_frontalface_alt.xml";
+//                String xmlFile = "/home/sahil/gitProgs/frProject/opencv/data/lbpcascades/lbpcascade_frontalface_improved.xml";
+                CascadeClassifier classifier = new CascadeClassifier(xmlFile);
+                MatOfRect faceDetections = new MatOfRect();
+                classifier.detectMultiScale(mat, faceDetections);
+                System.out.println(String.format("Detected %s faces",
+                        faceDetections.toArray().length));
+
+                if(faceDetections.toArray().length > 0) {
+                    MatOfByte matOfByte = new MatOfByte();
+                    Imgcodecs.imencode(".jpg", mat, matOfByte);
+                    byte[] data = matOfByte.toArray();
+
+                    String timestamp = frameInfo.timestamp.toString();
+                    JsonObject obj = new JsonObject();
+                    obj.addProperty("cameraId",cameraId);
+                    obj.addProperty("timestamp", timestamp);
+                    obj.addProperty("data", Base64.getEncoder().encodeToString(data));
+                    String json = gson.toJson(obj);
+                    producer.send(new ProducerRecord<String, String>(topic,partition,cameraId,json),new EventGeneratorCallback(cameraId));
+                    logger.info("Generated events for cameraId="+cameraId+" timestamp="+timestamp + " partition=" + partition);
+                }
 
             } else {
                 logger.info("Starting Camera" + cameraId);
