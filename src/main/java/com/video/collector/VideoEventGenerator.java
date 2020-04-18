@@ -97,8 +97,8 @@ public class VideoEventGenerator implements Runnable {
         //works only with video files
         double fps = camera.get(Videoio.CAP_PROP_FPS);
         System.out.println( "(before setting) FPS: " + fps);
-        camera.set(Videoio.CAP_PROP_FPS, 1.0);
-        fps = camera.get(Videoio.CAP_PROP_FPS);
+//        camera.set(Videoio.CAP_PROP_FPS, 1.0);
+//        fps = camera.get(Videoio.CAP_PROP_FPS);
         System.out.println( "FPS: " + fps);
 
         //check camera working
@@ -156,7 +156,19 @@ public class VideoEventGenerator implements Runnable {
                 FrameArrayList frameInfo = frameArray.get(0);
                 mat = frameInfo.mat;
 
+//                Imgproc.resize(mat, mat, new Size(), 0.5, 0.5, Imgproc.INTER_LINEAR);
+//                Size imageSize = mat.size();
+
+//                Mat resizeimage = new Mat();
+//                Size sz = new Size(,100);
+//                Imgproc.resize( mat, resizeimage, sz );
+//                mat = resizeimage;
+
                 String xmlFile = "/home/sahil/opencv_build/opencv/data/haarcascades/haarcascade_frontalface_alt.xml";
+
+//                String xmlFile = "/home/sahil/gitProgs/frProject/opencv/data/haarcascades/haarcascade_frontalface_alt.xml";
+//                String xmlFile = "/home/sahil/gitProgs/frProject/opencv/data/lbpcascades/lbpcascade_frontalface_improved.xml";
+
                 CascadeClassifier classifier = new CascadeClassifier(xmlFile);
                 MatOfRect faceDetections = new MatOfRect();
                 classifier.detectMultiScale(mat, faceDetections);
