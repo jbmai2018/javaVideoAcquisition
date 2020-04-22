@@ -107,7 +107,7 @@ public class VideoStreamCollector {
 //        }
 
 //        Logic for using 1 camera
-        Thread t = new Thread(new VideoEventGenerator(cameraEntryArray.get(0).split(",")[1],cameraEntryArray.get(0).split(",")[0],producer,topic, 1));
+        Thread t = new Thread(new VideoEventGenerator(cameraEntryArray.get(0).split(",")[1],cameraEntryArray.get(0).split(",")[0],producer,topic, 0));
         t.start();
     }
 }
