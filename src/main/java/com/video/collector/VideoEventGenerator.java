@@ -88,10 +88,11 @@ public class VideoEventGenerator implements Runnable {
     //generate JSON events for frame
     private void generateEvent(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition) throws Exception{
         VideoCapture camera = null;
+        camera = new VideoCapture();
         if(StringUtils.isNumeric(url)){
-            camera = new VideoCapture(Integer.parseInt(url));
+            camera.open(Integer.parseInt(url));
         } else {
-            camera = new VideoCapture(url);
+            camera.open(url);
         }
 
         //works only with video files
