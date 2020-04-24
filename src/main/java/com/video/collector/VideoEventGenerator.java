@@ -64,6 +64,7 @@ public class VideoEventGenerator implements Runnable {
     class FrameArrayList {
         Mat mat;
         Timestamp timestamp;
+
         FrameArrayList(Mat mat, Timestamp timestamp) {
             this.mat = mat;
             this.timestamp = timestamp;
@@ -72,13 +73,13 @@ public class VideoEventGenerator implements Runnable {
 
     @Override
     public void run() {
-        logger.info("Processing cameraId "+cameraId+" with url "+url);
+        logger.info("Processing cameraId " + cameraId + " with url " + url);
         try {
-            generateEvent(cameraId,url,producer,topic,partition);
+            generateEvent(cameraId, url, producer, topic, partition);
         } catch (Exception e) {
             logger.error(e.getMessage());
             try {
-                generateEvent(cameraId,url,producer,topic,partition);
+                generateEvent(cameraId, url, producer, topic, partition);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -86,10 +87,10 @@ public class VideoEventGenerator implements Runnable {
     }
 
     //generate JSON events for frame
-    private void generateEvent(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition) throws Exception{
+    private void generateEvent(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition) throws Exception {
         VideoCapture camera = null;
         camera = new VideoCapture();
-        if(StringUtils.isNumeric(url)){
+        if (StringUtils.isNumeric(url)) {
             camera.open(Integer.parseInt(url));
         } else {
             camera.open(url);
@@ -97,17 +98,17 @@ public class VideoEventGenerator implements Runnable {
 
         //works only with video files
         double fps = camera.get(Videoio.CAP_PROP_FPS);
-        System.out.println( "(before setting) FPS: " + fps);
+        System.out.println("(before setting) FPS: " + fps);
 //        camera.set(Videoio.CAP_PROP_FPS, 1.0);
 //        fps = camera.get(Videoio.CAP_PROP_FPS);
-        System.out.println( "FPS: " + fps);
+        System.out.println("FPS: " + fps);
 
         //check camera working
         if (!camera.isOpened()) {
             Thread.sleep(5000);
             if (!camera.isOpened()) {
-                logger.info("Error opening cameraId "+cameraId+" with url="+url+".Set correct file path or url in camera.url key of property file.");
-                generateEvent(cameraId,url,producer,topic,partition);
+                logger.info("Error opening cameraId " + cameraId + " with url=" + url + ".Set correct file path or url in camera.url key of property file.");
+                generateEvent(cameraId, url, producer, topic, partition);
 //                throw new Exception("Error opening cameraId "+cameraId+" with url="+url+".Set correct file path or url in camera.url key of property file.");
             }
         }
@@ -128,7 +129,7 @@ public class VideoEventGenerator implements Runnable {
             while (System.currentTimeMillis() < cal.getTimeInMillis() + 1000) {
 //                System.out.println("" + System.currentTimeMillis() + "       start  " + cal.getTimeInMillis() + 1000);
                 try {
-                    if(camera.read(mat)) {
+                    if (camera.read(mat)) {
                         FrameArrayList frameArrayList = new FrameArrayList(mat, new Timestamp(System.currentTimeMillis()));
                         frameArray.add(frameArrayList);
                     } else {
@@ -141,7 +142,7 @@ public class VideoEventGenerator implements Runnable {
                     logger.info("Camera " + cameraId + " Error occured");
                     logger.error(e.getMessage());
                     try {
-                        generateEvent(cameraId,url,producer,topic,partition);
+                        generateEvent(cameraId, url, producer, topic, partition);
                     } catch (Exception e2) {
                         logger.info("Exiting Camera");
 //                        networkDowntime.addProperty("downtime", new Timestamp(System.currentTimeMillis());
@@ -153,22 +154,11 @@ public class VideoEventGenerator implements Runnable {
             }
 
             sizeOfFrameArray = frameArray.size();
-            if(sizeOfFrameArray > 0) {
+            if (sizeOfFrameArray > 0) {
                 FrameArrayList frameInfo = frameArray.get(0);
                 mat = frameInfo.mat;
 
-//                Imgproc.resize(mat, mat, new Size(), 0.5, 0.5, Imgproc.INTER_LINEAR);
-//                Size imageSize = mat.size();
-
-//                Mat resizeimage = new Mat();
-//                Size sz = new Size(,100);
-//                Imgproc.resize( mat, resizeimage, sz );
-//                mat = resizeimage;
-
-                String xmlFile = "/home/sahil/opencv_build/opencv/data/haarcascades/haarcascade_frontalface_alt.xml";
-
-//                String xmlFile = "/home/sahil/gitProgs/frProject/opencv/data/haarcascades/haarcascade_frontalface_alt.xml";
-//                String xmlFile = "/home/sahil/gitProgs/frProject/opencv/data/lbpcascades/lbpcascade_frontalface_improved.xml";
+                String xmlFile = String.valueOf(getClass().getClassLoader().getResource("haarcascade_frontalface_alt.xml")).replace("file:","");
 
                 CascadeClassifier classifier = new CascadeClassifier(xmlFile);
                 MatOfRect faceDetections = new MatOfRect();
@@ -176,24 +166,24 @@ public class VideoEventGenerator implements Runnable {
                 System.out.println(String.format("Detected %s faces",
                         faceDetections.toArray().length));
 
-                if(faceDetections.toArray().length > 0) {
+                if (faceDetections.toArray().length > 0) {
                     MatOfByte matOfByte = new MatOfByte();
                     Imgcodecs.imencode(".jpg", mat, matOfByte);
                     byte[] data = matOfByte.toArray();
 
                     String timestamp = frameInfo.timestamp.toString();
                     JsonObject obj = new JsonObject();
-                    obj.addProperty("cameraId",cameraId);
+                    obj.addProperty("cameraId", cameraId);
                     obj.addProperty("timestamp", timestamp);
                     obj.addProperty("data", Base64.getEncoder().encodeToString(data));
                     String json = gson.toJson(obj);
-                    producer.send(new ProducerRecord<String, String>(topic,partition,cameraId,json),new EventGeneratorCallback(cameraId));
-                    logger.info("Generated events for cameraId="+cameraId+" timestamp="+timestamp + " partition=" + partition);
+                    producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));
+                    logger.info("Generated events for cameraId=" + cameraId + " timestamp=" + timestamp + " partition=" + partition);
                 }
 
             } else {
                 logger.info("Starting Camera" + cameraId);
-                generateEvent(cameraId,url,producer,topic,partition);
+                generateEvent(cameraId, url, producer, topic, partition);
             }
         }
     }
@@ -225,7 +215,7 @@ public class VideoEventGenerator implements Runnable {
         @Override
         public void onCompletion(RecordMetadata rm, Exception e) {
             if (rm != null) {
-                logger.info("topic" + topic + " cameraId="+ camId + " partition=" + rm.partition());
+                logger.info("topic" + topic + " cameraId=" + camId + " partition=" + rm.partition());
             }
             if (e != null) {
                 e.printStackTrace();
