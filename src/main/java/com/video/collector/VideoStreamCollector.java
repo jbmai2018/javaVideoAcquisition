@@ -89,11 +89,11 @@ public class VideoStreamCollector {
 
         //test array for testing on webcam
         ArrayList<String> cameraEntryArray2 = new ArrayList<String>();
-        cameraEntryArray2.add("0,webcam");
+//        cameraEntryArray2.add("0,webcam");
 //        cameraEntryArray2.add("rtsp:/ /admin:password123@192.1.13.223/live/0/MAIN,webcam2");
 //        cameraEntryArray2.add("rtsp://admin:password123@192.1.13.224/live/0/MAIN,webcam1");
 
-//        cameraEntryArray2.add("rtsp://admin:Sahil12051994@@192.168.1.64:554/Streaming/Channels/101,webcam1");
+        cameraEntryArray2.add("rtsp://admin:Sahil12051994%40@192.168.1.64:554/Streaming/Channels/101,webcam1");
 //        cameraEntryArray2.add("rtsp://admin:Sahil12051994@@192.168.1.64:554/Streaming/Channels/201,webcam2");
 //        cameraEntryArray2.add("rtsp://admin:Sahil12051994@@192.168.1.64:554/Streaming/Channels/301,webcam3");
 //        cameraEntryArray2.add("rtsp://admin:Sahil12051994@@192.168.1.64:554/Streaming/Channels/401,webcam4");

@@ -25,6 +25,7 @@ import org.opencv.videoio.VideoCapture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.opencv.videoio.Videoio;
+import org.opencv.highgui.HighGui;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -157,6 +158,8 @@ public class VideoEventGenerator implements Runnable {
             if (sizeOfFrameArray > 0) {
                 FrameArrayList frameInfo = frameArray.get(0);
                 mat = frameInfo.mat;
+                HighGui.imshow("Image", mat);
+                HighGui.waitKey(10);
 
                 String xmlFile = String.valueOf(getClass().getClassLoader().getResource("haarcascade_frontalface_alt.xml")).replace("file:","");
 
