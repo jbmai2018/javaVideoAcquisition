@@ -11,7 +11,6 @@
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/commons-lang/commons-lang/2.6/commons-lang-2.6.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/zookeeper/zookeeper/3.4.9/zookeeper-3.4.9.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$USER_HOME$/opencv_build/opencv/build/bin/opencv-412.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/mongodb/mongodb-driver-sync/3.11.1/mongodb-driver-sync-3.11.1.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/kafka/kafka_2.11/0.10.2.0/kafka_2.11-0.10.2.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/101tec/zkclient/0.10/zkclient-0.10.jar" path-in-jar="/" />
@@ -23,8 +22,9 @@
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.11.8/scala-library-2.11.8.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/log4j/log4j/1.2.17/log4j-1.2.17.jar" path-in-jar="/" />
-      <element id="file-copy" path="$USER_HOME$/opencv_build/opencv/build/bin/opencv-412.jar" />
-      <element id="file-copy" path="$USER_HOME$/opencv_build/opencv/build/lib/libopencv_java412.so" />
+      <element id="file-copy" path="$USER_HOME$/Downloads/opencv/build/java/opencv-430.jar" />
+      <element id="file-copy" path="$USER_HOME$/Downloads/opencv/build/java/x64/opencv_java430.dll" />
+      <element id="file-copy" path="$USER_HOME$/Downloads/opencv/build/java/x64/opencv_videoio_ffmpeg430_64.dll" />
     </root>
   </artifact>
 </component>

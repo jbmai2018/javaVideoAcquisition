@@ -161,7 +161,9 @@ public class VideoEventGenerator implements Runnable {
                 HighGui.imshow("Image", mat);
                 HighGui.waitKey(10);
 
-                String xmlFile = String.valueOf(getClass().getClassLoader().getResource("haarcascade_frontalface_alt.xml")).replace("file:","");
+                String xmlFile = String.valueOf(getClass().getClassLoader().getResource("haarcascade_frontalface_alt.xml")).replace("file:/","");
+//                System.out.println(String.valueOf(getClass().getClassLoader().getResource("haarcascade_frontalface_alt.xml")).replace("file:/",""));
+//                String xmlFile = "C:\\Users\\sahil\\Downloads\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
 
                 CascadeClassifier classifier = new CascadeClassifier(xmlFile);
                 MatOfRect faceDetections = new MatOfRect();
