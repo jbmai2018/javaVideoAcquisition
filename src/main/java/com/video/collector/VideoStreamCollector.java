@@ -1,17 +1,18 @@
 package com.video.collector;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.google.gson.JsonArray;
 import com.video.util.PropertyFileReader;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.log4j.Logger;
-import org.bson.Document;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 public class VideoStreamCollector {
@@ -19,6 +20,9 @@ public class VideoStreamCollector {
     private static final Logger logger = Logger.getLogger(VideoStreamCollector.class);
 
     public static void main(String[] args) throws Exception {
+
+        String iotId = "1011";
+        String iotPass = "pass123";
 
         // set producer properties
         Properties prop = PropertyFileReader.readPropertyFile();
@@ -33,47 +37,40 @@ public class VideoStreamCollector {
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-//        MongoClient mongoClient = MongoClients.create();
-////        MongoClient mongoClient = MongoClients.create("mongodb://jbmTest3:jbm%40234@localhost:27017/?authMechanism=SCRAM-SHA-1&authSource=admin");
-//        MongoDatabase database = mongoClient.getDatabase("jbmDB");
-//        MongoCollection<Document> collection = database.getCollection("cameras");
-//
-//        System.out.println("Number of cameras in DB : " + collection.countDocuments());
-
         ArrayList<String> cameraEntryArray = new ArrayList<String>();
 
-//        List<Document> cameras = (List<Document>) collection.find().into(
-//                new ArrayList<Document>());
-//
-//        for (Document camera : cameras) {
-//            String camName = camera.getString("camName");
-//            //if(camName.equals("camera_192113224_CORP")) {
-//                List<Document> deploymentDetails = (List<Document>) camera.get("deploymentDetails");
-//                String x = (String) deploymentDetails.get(0).get("microserviceName");
-//                if(x.equals("faceRecog")) {
-//                    String rtspLink = "rtsp://";
-//                    Document login = (Document) camera.get("login");
-//                    String username = login.getString("username");
-//                    rtspLink += username;
-//                    String password = login.getString("password");
-//                    if(password.equals("password@123")){
-//                        password = "password%40123";
-//                    }
-//                    rtspLink += ":" + password;
-//                    rtspLink += "@";
-//
-//                    Document hardware = (Document) camera.get("hardware");
-//                    String ip = hardware.getString("ip");
-//                    rtspLink += ip;
-//                    rtspLink += "/live/0/MAIN";
-//
-//                    String camId = camera.getString("camName");
-//                    String cameraEntry = rtspLink + "," + camId;
-//                    cameraEntryArray.add(cameraEntry);
-//                }
-//            //}
-////			System.out.println(cameraEntryArray);
-//        }
+        String targetURL = "";
+        HttpURLConnection connection = null;
+
+        try {
+            URL url = new URL("http://3.7.152.162/face/iot/getdetail?iotId="+iotId+"&iotPassword="+iotPass);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            BufferedReader in = new BufferedReader(new InputStreamReader( con.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+//            System.out.println(response.toString());
+            JSONObject myResponse = new JSONObject(response.toString());
+            JSONArray cameraArray = myResponse.getJSONArray("cameraArray");
+            System.out.println("Number of cameras" + cameraArray.length());
+            for (int cIndex=0; cIndex < cameraArray.length(); cIndex++) {
+                JSONObject camera = cameraArray.getJSONObject(cIndex);
+                System.out.println(camera);
+                String cameraEntry = camera.getString("rtsp") + "," + camera.getString("camId") + "," + String.valueOf(camera.getInt("delay")) + "," + camera.getString("kafkaTopic") + "," + camera.getString("cameraType");
+                cameraEntryArray.add(cameraEntry);
+            }
+            System.out.println(cameraEntryArray);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
 
         // generate event
         Producer<String, String> producer = new KafkaProducer<String, String>(properties);
@@ -81,33 +78,20 @@ public class VideoStreamCollector {
     }
 
     private static void generateIoTEvent(Producer<String, String> producer, String topic, ArrayList<String> cameraEntryArray) throws Exception {
-//		String[] urls = videoUrl.split(",");
-//		String[] ids = camId.split(",");
-//		if(urls.length != ids.length){
-//			throw new Exception("There should be same number of camera Id and url");
-//		}
-
-        //test array for testing on webcam
-        ArrayList<String> cameraEntryArray2 = new ArrayList<String>();
-//        cameraEntryArray2.add("0,webcam");
-//        cameraEntryArray2.add("rtsp:/ /admin:password123@192.1.13.223/live/0/MAIN,webcam2");
-//        cameraEntryArray2.add("rtsp://admin:password123@192.1.13.224/live/0/MAIN,webcam1");
-
-        cameraEntryArray2.add("rtsp://admin:Sahil12051994%40@192.168.1.64:554/Streaming/Channels/101,webcam1");
-//        cameraEntryArray2.add("rtsp://admin:Sahil12051994@@192.168.1.64:554/Streaming/Channels/201,webcam2");
-//        cameraEntryArray2.add("rtsp://admin:Sahil12051994@@192.168.1.64:554/Streaming/Channels/301,webcam3");
-//        cameraEntryArray2.add("rtsp://admin:Sahil12051994@@192.168.1.64:554/Streaming/Channels/401,webcam4");
-//        cameraEntryArray2.add("rtsp://admin:password123@192.168.1.10:554/1,webcam1");
-        cameraEntryArray = cameraEntryArray2;
 
 //        Logic for using multiple cameras
-//        for(int pIndex=0;pIndex<cameraEntryArray.size();pIndex++) {
-//            Thread t = new Thread(new VideoEventGenerator(cameraEntryArray.get(pIndex).split(",")[1],cameraEntryArray.get(pIndex).split(",")[0],producer,topic, pIndex));
-//            t.start();
-//        }
+        for(int pIndex=0;pIndex<cameraEntryArray.size();pIndex++) {
 
-//        Logic for using 1 camera
-        Thread t = new Thread(new VideoEventGenerator(cameraEntryArray.get(0).split(",")[1],cameraEntryArray.get(0).split(",")[0],producer,topic, 0));
-        t.start();
+            String cameraId = cameraEntryArray.get(pIndex).split(",")[1];
+            String rtspLink  = cameraEntryArray.get(pIndex).split(",")[0];
+            String topicForCamera = cameraEntryArray.get(pIndex).split(",")[3];
+            Integer partitionForCamera = 0;
+            String delay = cameraEntryArray.get(pIndex).split(",")[2];
+            String cameraType = cameraEntryArray.get(pIndex).split(",")[4];
+
+            Thread.sleep(1000);
+            Thread t = new Thread(new VideoEventGenerator(cameraId, rtspLink, producer, topicForCamera, partitionForCamera, Integer.parseInt(delay), cameraType));
+            t.start();
+        }
     }
 }
