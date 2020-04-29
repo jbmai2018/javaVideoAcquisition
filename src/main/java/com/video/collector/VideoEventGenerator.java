@@ -193,13 +193,11 @@ public class VideoEventGenerator implements Runnable {
                             faceDetections.toArray().length));
 
                     if (faceDetections.toArray().length > 0) {
-
                         producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));
                         logger.info("Generated events for cameraId=" + cameraId + " timestamp=" + timestamp + " partition=" + partition);
                     }
 
                 } else if(cameraType.equals("socialDistance")) {
-
                     producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));
                     logger.info("Generated events for cameraId=" + cameraId + " timestamp=" + timestamp + " partition=" + partition);
                 }
