@@ -21,7 +21,7 @@ public class VideoStreamCollector {
 
     public static void main(String[] args) throws Exception {
 
-        String iotId = "1011";
+        String iotId = "8061";
         String iotPass = "pass123";
 
         // set producer properties
