@@ -163,43 +163,48 @@ public class VideoEventGenerator implements Runnable {
 
             sizeOfFrameArray = frameArray.size();
             if (sizeOfFrameArray > 0) {
-                FrameArrayList frameInfo = frameArray.get(0);
-                mat = frameInfo.mat;
+                try {
+                    FrameArrayList frameInfo = frameArray.get(0);
+                    mat = frameInfo.mat;
 
-                Size scaleSize = new Size(768,432);
-                resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
+                    Size scaleSize = new Size(768,432);
+                    resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
 
-                HighGui.imshow("Java", mat);
-                HighGui.waitKey(10);
+                    HighGui.imshow("Java", mat);
+                    HighGui.waitKey(10);
 
-                MatOfByte matOfByte = new MatOfByte();
-                Imgcodecs.imencode(".jpg", mat, matOfByte);
-                byte[] data = matOfByte.toArray();
+                    MatOfByte matOfByte = new MatOfByte();
+                    Imgcodecs.imencode(".jpg", mat, matOfByte);
+                    byte[] data = matOfByte.toArray();
 
-                String timestamp = frameInfo.timestamp.toString();
-                JsonObject obj = new JsonObject();
-                obj.addProperty("camera", cameraId);
-                obj.addProperty("time", timestamp);
-                obj.addProperty("image", Base64.getEncoder().encodeToString(data));
-                String json = gson.toJson(obj);
+                    String timestamp = frameInfo.timestamp.toString();
+                    JsonObject obj = new JsonObject();
+                    obj.addProperty("camera", cameraId);
+                    obj.addProperty("time", timestamp);
+                    obj.addProperty("image", Base64.getEncoder().encodeToString(data));
+                    String json = gson.toJson(obj);
 
-                if(cameraType.equals("faceRecog")) {
+                    if(cameraType.equals("faceRecog")) {
+                        String xmlFile = String.valueOf(getClass().getClassLoader().getResource("haarcascade_frontalface_alt.xml")).replace("file:","");
+//                        String xmlFile= "C:\\Users\\Administrator\\Desktop\\FR Software\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
+                        CascadeClassifier classifier = new CascadeClassifier(xmlFile);
+                        MatOfRect faceDetections = new MatOfRect();
+                        classifier.detectMultiScale(mat, faceDetections);
+                        System.out.println(String.format("Detected %s faces",
+                                faceDetections.toArray().length));
 
-                    String xmlFile = String.valueOf(getClass().getClassLoader().getResource("haarcascade_frontalface_alt.xml")).replace("file:","");
-                    CascadeClassifier classifier = new CascadeClassifier(xmlFile);
-                    MatOfRect faceDetections = new MatOfRect();
-                    classifier.detectMultiScale(mat, faceDetections);
-                    System.out.println(String.format("Detected %s faces",
-                            faceDetections.toArray().length));
+                        if (faceDetections.toArray().length > 0) {
+                            producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));
+                            logger.info("Generated events for cameraId=" + cameraId + " timestamp=" + timestamp + " partition=" + partition);
+                        }
 
-                    if (faceDetections.toArray().length > 0) {
+                    } else if(cameraType.equals("socialDistance")) {
                         producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));
                         logger.info("Generated events for cameraId=" + cameraId + " timestamp=" + timestamp + " partition=" + partition);
                     }
-
-                } else if(cameraType.equals("socialDistance")) {
-                    producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));
-                    logger.info("Generated events for cameraId=" + cameraId + " timestamp=" + timestamp + " partition=" + partition);
+                } catch (Exception e) {
+                    logger.info("Error in face detection: " + e);
+                    generateEvent(cameraId, url, producer, topic, partition, delay, cameraType);
                 }
 
             } else {
