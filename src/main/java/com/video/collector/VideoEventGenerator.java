@@ -170,7 +170,7 @@ public class VideoEventGenerator implements Runnable {
                     Size scaleSize = new Size(768,432);
                     resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
 
-                    HighGui.imshow("Java", mat);
+                    HighGui.imshow("FR", mat);
                     HighGui.waitKey(10);
 
                     MatOfByte matOfByte = new MatOfByte();

@@ -90,8 +90,15 @@ public class VideoStreamCollector {
             String cameraType = cameraEntryArray.get(pIndex).split(",")[4];
 
             Thread.sleep(1000);
-            Thread t = new Thread(new VideoEventGenerator(cameraId, rtspLink, producer, topicForCamera, partitionForCamera, Integer.parseInt(delay), cameraType));
-            t.start();
+            if(cameraType.equals("faceRecog")) {
+                // Keeps VideoCapture Object Cont. Open to save time
+                Thread t = new Thread(new VideoEventGenerator(cameraId, rtspLink, producer, topicForCamera, partitionForCamera, Integer.parseInt(delay), cameraType));
+                t.start();
+            } else if(cameraType.equals("socialDistance")){
+                // Closes VideoCapture Object after each frame capture to save memory
+                Thread t = new Thread(new VideoSDGenerator(cameraId, rtspLink, producer, topicForCamera, partitionForCamera, Integer.parseInt(delay), cameraType));
+                t.start();
+            }
         }
     }
 }
