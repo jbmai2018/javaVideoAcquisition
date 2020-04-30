@@ -128,8 +128,8 @@ public class VideoSDGenerator implements Runnable {
                     FrameArrayList frameArrayList = new FrameArrayList(mat, new Timestamp(System.currentTimeMillis()));
                     frameArray.add(frameArrayList);
                     System.out.println("Frame Array Size: " + frameArray.size());
-                    HighGui.imshow("LazyEvents", frameArray.get(0).mat);
-                    HighGui.waitKey(1000);
+//                    HighGui.imshow("LazyEvents", frameArray.get(0).mat);
+//                    HighGui.waitKey(1000);
 
                 } else {
                     logger.info(camera.isOpened());
