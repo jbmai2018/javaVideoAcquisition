@@ -124,7 +124,7 @@ public class VideoSDGenerator implements Runnable {
                 if (camera.read(mat)) {
 //                    System.out.println(mat);
 
-                    Imgproc.resize(mat, mat, new Size(), 0.25, 0.25, Imgproc.INTER_LINEAR);
+                    Imgproc.resize(mat, mat, new Size(), 1, 1, Imgproc.INTER_LINEAR);
 //                    Size scaleSize = new Size(768,432);
 //                    resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
 
