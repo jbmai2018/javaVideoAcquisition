@@ -24,6 +24,7 @@ public class VideoStreamCollector {
 
         String iotId = "8061";
         String iotPass = "pass123";
+        String companyId = "JBM Group";
 
         // set producer properties
         Properties prop = PropertyFileReader.readPropertyFile();
@@ -44,7 +45,7 @@ public class VideoStreamCollector {
         HttpURLConnection connection = null;
 
         try {
-            URL url = new URL("http://3.7.152.162/face/iot/getdetail?iotId="+iotId+"&iotPassword="+iotPass);
+            URL url = new URL("http://3.7.152.162/face/iot/getdetail?iotId="+iotId+"&iotPassword="+iotPass+"&companyId="+companyId);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             BufferedReader in = new BufferedReader(new InputStreamReader( con.getInputStream()));
