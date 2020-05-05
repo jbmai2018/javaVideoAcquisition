@@ -167,11 +167,12 @@ public class VideoEventGenerator implements Runnable {
                     FrameArrayList frameInfo = frameArray.get(0);
                     mat = frameInfo.mat;
 
-                    Size scaleSize = new Size(768,432);
-                    resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
+                    Imgproc.resize(mat, mat, new Size(), 1, 1, Imgproc.INTER_LINEAR);
+//                    Size scaleSize = new Size(768,432);
+//                    resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
 
-//                    HighGui.imshow("FR", mat);
-//                    HighGui.waitKey(10);
+                    HighGui.imshow("FR", mat);
+                    HighGui.waitKey(10);
 
                     MatOfByte matOfByte = new MatOfByte();
                     Imgcodecs.imencode(".jpg", mat, matOfByte);
@@ -193,10 +194,10 @@ public class VideoEventGenerator implements Runnable {
                         System.out.println(String.format("Detected %s faces",
                                 faceDetections.toArray().length));
 
-                        if (faceDetections.toArray().length > 0) {
+//                        if (faceDetections.toArray().length > 0) {
                             producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));
                             logger.info("Generated events for cameraId=" + cameraId + " timestamp=" + timestamp + " partition=" + partition);
-                        }
+//                        }
 
                     } else if(cameraType.equals("socialDistance")) {
                         producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));

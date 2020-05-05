@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.opencv.core.*;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
@@ -122,14 +123,16 @@ public class VideoSDGenerator implements Runnable {
             try {
                 if (camera.read(mat)) {
 //                    System.out.println(mat);
-                    Size scaleSize = new Size(768,432);
-                    resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
+
+                    Imgproc.resize(mat, mat, new Size(), 0.25, 0.25, Imgproc.INTER_LINEAR);
+//                    Size scaleSize = new Size(768,432);
+//                    resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
 
                     FrameArrayList frameArrayList = new FrameArrayList(mat, new Timestamp(System.currentTimeMillis()));
                     frameArray.add(frameArrayList);
                     System.out.println("Frame Array Size: " + frameArray.size());
-//                    HighGui.imshow("LazyEvents", frameArray.get(0).mat);
-//                    HighGui.waitKey(1000);
+                    HighGui.imshow("LazyEvents", frameArray.get(0).mat);
+                    HighGui.waitKey(1000);
 
                 } else {
                     logger.info(camera.isOpened());

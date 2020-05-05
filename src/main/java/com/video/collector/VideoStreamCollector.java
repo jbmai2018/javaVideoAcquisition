@@ -14,6 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.Random;
 
 public class VideoStreamCollector {
 
@@ -56,7 +57,7 @@ public class VideoStreamCollector {
 //            System.out.println(response.toString());
             JSONObject myResponse = new JSONObject(response.toString());
             JSONArray cameraArray = myResponse.getJSONArray("cameraArray");
-            System.out.println("Number of cameras" + cameraArray.length());
+            System.out.println("Number of cameras" + cameraArray);
             for (int cIndex=0; cIndex < cameraArray.length(); cIndex++) {
                 JSONObject camera = cameraArray.getJSONObject(cIndex);
                 System.out.println(camera);
@@ -85,14 +86,16 @@ public class VideoStreamCollector {
             String cameraId = cameraEntryArray.get(pIndex).split(",")[1];
             String rtspLink  = cameraEntryArray.get(pIndex).split(",")[0];
             String topicForCamera = cameraEntryArray.get(pIndex).split(",")[3];
-            Integer partitionForCamera = 0;
+            Random random = new Random();
+            int randomInteger = random.nextInt(100);
+            Integer partitionForCamera = randomInteger;
             String delay = cameraEntryArray.get(pIndex).split(",")[2];
             String cameraType = cameraEntryArray.get(pIndex).split(",")[4];
 
             Thread.sleep(1000);
             if(cameraType.equals("faceRecog")) {
                 // Keeps VideoCapture Object Cont. Open to save time
-                Thread t = new Thread(new VideoEventGenerator(cameraId, rtspLink, producer, topicForCamera, partitionForCamera, Integer.parseInt(delay), cameraType));
+                Thread t = new Thread(new VideoEventGenerator(cameraId, rtspLink, producer, topicForCamera, 0, Integer.parseInt(delay), cameraType));
                 t.start();
             } else if(cameraType.equals("socialDistance")){
                 // Closes VideoCapture Object after each frame capture to save memory
