@@ -39,8 +39,9 @@ public class VideoSDGenerator implements Runnable {
     private Integer delay;
     private String cameraType;
     private JsonObject networkDowntime;
+    private String companyId;
 
-    public VideoSDGenerator(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType) {
+    public VideoSDGenerator(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType, String companyId) {
         this.cameraId = cameraId;
         this.url = url;
         this.producer = producer;
@@ -79,11 +80,11 @@ public class VideoSDGenerator implements Runnable {
     public void run() {
         logger.info("Processing cameraId " + cameraId + " with url " + url);
         try {
-            generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+            generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
         } catch (Exception e) {
             logger.error(e.getMessage());
             try {
-                generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+                generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -91,7 +92,7 @@ public class VideoSDGenerator implements Runnable {
     }
 
     //generate JSON events for frame
-    private void generateLazyEvent(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType) throws Exception {
+    private void generateLazyEvent(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType, String companyId) throws Exception {
 
         while(true) {
             Thread.sleep(delay);
@@ -109,7 +110,7 @@ public class VideoSDGenerator implements Runnable {
                 Thread.sleep(5000);
                 if (!camera.isOpened()) {
                     logger.info("Error opening cameraId " + cameraId + " with url=" + url + ".Set correct file path or url in camera.url key of property file.");
-                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
 //                throw new Exception("Error opening cameraId "+cameraId+" with url="+url+".Set correct file path or url in camera.url key of property file.");
                 }
             }
@@ -144,7 +145,7 @@ public class VideoSDGenerator implements Runnable {
                 logger.info("Camera " + cameraId + " Error occured");
                 logger.error(e.getMessage());
                 try {
-                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
                 } catch (Exception e2) {
                     logger.info("Exiting Camera");
                     camera.release();
@@ -172,6 +173,8 @@ public class VideoSDGenerator implements Runnable {
                     obj.addProperty("camera", cameraId);
                     obj.addProperty("time", timestamp);
                     obj.addProperty("image", Base64.getEncoder().encodeToString(data));
+                    obj.addProperty("company", companyId);
+
                     String json = gson.toJson(obj);
 
                     if(cameraType.equals("faceRecog")) {
@@ -194,7 +197,7 @@ public class VideoSDGenerator implements Runnable {
                     }
                 } catch (Exception e) {
                     logger.info("Error in face detection: " + e);
-                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
                 }
 
                 camera.release();
@@ -202,7 +205,7 @@ public class VideoSDGenerator implements Runnable {
 
             } else {
                 logger.info("Starting Camera" + cameraId);
-                generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+                generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
             }
 
         }

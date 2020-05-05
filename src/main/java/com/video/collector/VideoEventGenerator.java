@@ -43,8 +43,9 @@ public class VideoEventGenerator implements Runnable {
     private Integer delay;
     private String cameraType;
     private JsonObject networkDowntime;
+    private String companyId;
 
-    public VideoEventGenerator(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType) {
+    public VideoEventGenerator(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType, String companyId) {
         this.cameraId = cameraId;
         this.url = url;
         this.producer = producer;
@@ -52,6 +53,7 @@ public class VideoEventGenerator implements Runnable {
         this.partition = partition;
         this.delay = delay;
         this.cameraType = cameraType;
+        this.companyId = companyId;
     }
 
     //load OpenCV native lib
@@ -83,11 +85,11 @@ public class VideoEventGenerator implements Runnable {
     public void run() {
         logger.info("Processing cameraId " + cameraId + " with url " + url);
         try {
-            generateEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+            generateEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
         } catch (Exception e) {
             logger.error(e.getMessage());
             try {
-                generateEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+                generateEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -95,7 +97,7 @@ public class VideoEventGenerator implements Runnable {
     }
 
     //generate JSON events for frame
-    private void generateEvent(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType) throws Exception {
+    private void generateEvent(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType, String companyId) throws Exception {
         VideoCapture camera = null;
         camera = new VideoCapture();
         if (StringUtils.isNumeric(url)) {
@@ -116,7 +118,7 @@ public class VideoEventGenerator implements Runnable {
             Thread.sleep(5000);
             if (!camera.isOpened()) {
                 logger.info("Error opening cameraId " + cameraId + " with url=" + url + ".Set correct file path or url in camera.url key of property file.");
-                generateEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+                generateEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
 //                throw new Exception("Error opening cameraId "+cameraId+" with url="+url+".Set correct file path or url in camera.url key of property file.");
             }
         }
@@ -150,7 +152,7 @@ public class VideoEventGenerator implements Runnable {
                     logger.info("Camera " + cameraId + " Error occured");
                     logger.error(e.getMessage());
                     try {
-                        generateEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+                        generateEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
                     } catch (Exception e2) {
                         logger.info("Exiting Camera");
 //                        networkDowntime.addProperty("downtime", new Timestamp(System.currentTimeMillis());
@@ -183,6 +185,7 @@ public class VideoEventGenerator implements Runnable {
                     obj.addProperty("camera", cameraId);
                     obj.addProperty("time", timestamp);
                     obj.addProperty("image", Base64.getEncoder().encodeToString(data));
+                    obj.addProperty("company", companyId);
                     String json = gson.toJson(obj);
 
                     if(cameraType.equals("faceRecog")) {
@@ -194,10 +197,10 @@ public class VideoEventGenerator implements Runnable {
                         System.out.println(String.format("Detected %s faces",
                                 faceDetections.toArray().length));
 
-//                        if (faceDetections.toArray().length > 0) {
+                        if (faceDetections.toArray().length > 0) {
                             producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));
                             logger.info("Generated events for cameraId=" + cameraId + " timestamp=" + timestamp + " partition=" + partition);
-//                        }
+                        }
 
                     } else if(cameraType.equals("socialDistance")) {
                         producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));
@@ -205,12 +208,12 @@ public class VideoEventGenerator implements Runnable {
                     }
                 } catch (Exception e) {
                     logger.info("Error in face detection: " + e);
-                    generateEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+                    generateEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
                 }
 
             } else {
                 logger.info("Starting Camera" + cameraId);
-                generateEvent(cameraId, url, producer, topic, partition, delay, cameraType);
+                generateEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
             }
         }
     }

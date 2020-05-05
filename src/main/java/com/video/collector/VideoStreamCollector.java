@@ -61,7 +61,7 @@ public class VideoStreamCollector {
             for (int cIndex=0; cIndex < cameraArray.length(); cIndex++) {
                 JSONObject camera = cameraArray.getJSONObject(cIndex);
                 System.out.println(camera);
-                String cameraEntry = camera.getString("rtsp") + "," + camera.getString("camId") + "," + String.valueOf(camera.getInt("delay")) + "," + camera.getString("kafkaTopic") + "," + camera.getString("cameraType");
+                String cameraEntry = camera.getString("rtsp") + "," + camera.getString("camId") + "," + String.valueOf(camera.getInt("delay")) + "," + camera.getString("kafkaTopic") + "," + camera.getString("cameraType") + "," + camera.getString("companyId");
                 cameraEntryArray.add(cameraEntry);
             }
             System.out.println(cameraEntryArray);
@@ -91,15 +91,16 @@ public class VideoStreamCollector {
             Integer partitionForCamera = randomInteger;
             String delay = cameraEntryArray.get(pIndex).split(",")[2];
             String cameraType = cameraEntryArray.get(pIndex).split(",")[4];
+            String companyId = cameraEntryArray.get(pIndex).split(",")[5];
 
             Thread.sleep(1000);
             if(cameraType.equals("faceRecog")) {
                 // Keeps VideoCapture Object Cont. Open to save time
-                Thread t = new Thread(new VideoEventGenerator(cameraId, rtspLink, producer, topicForCamera, 0, Integer.parseInt(delay), cameraType));
+                Thread t = new Thread(new VideoEventGenerator(cameraId, rtspLink, producer, topicForCamera, 0, Integer.parseInt(delay), cameraType, companyId));
                 t.start();
             } else if(cameraType.equals("socialDistance")){
                 // Closes VideoCapture Object after each frame capture to save memory
-                Thread t = new Thread(new VideoSDGenerator(cameraId, rtspLink, producer, topicForCamera, partitionForCamera, Integer.parseInt(delay), cameraType));
+                Thread t = new Thread(new VideoSDGenerator(cameraId, rtspLink, producer, topicForCamera, partitionForCamera, Integer.parseInt(delay), cameraType, companyId));
                 t.start();
             }
         }
