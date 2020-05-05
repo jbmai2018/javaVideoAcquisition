@@ -24,7 +24,7 @@ public class VideoStreamCollector {
 
         String iotId = "8061";
         String iotPass = "pass123";
-        String companyId = "JBM Group";
+        String companyId = "JBMGroup";
 
         // set producer properties
         Properties prop = PropertyFileReader.readPropertyFile();
