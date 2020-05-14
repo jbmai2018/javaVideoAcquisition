@@ -25,6 +25,7 @@ import org.opencv.videoio.VideoCapture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.opencv.videoio.Videoio;
+import org.opencv.core.Rect;
 import org.opencv.highgui.HighGui;
 
 import javax.imageio.ImageIO;
@@ -169,12 +170,12 @@ public class VideoEventGenerator implements Runnable {
                     FrameArrayList frameInfo = frameArray.get(0);
                     mat = frameInfo.mat;
 
-                    Imgproc.resize(mat, mat, new Size(), 1, 1, Imgproc.INTER_LINEAR);
+                    resize(mat, mat, new Size(), 1, 1, Imgproc.INTER_LINEAR);
 //                    Size scaleSize = new Size(768,432);
 //                    resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
 
-//                    HighGui.imshow("FR", mat);
-//                    HighGui.waitKey(10);
+                    HighGui.imshow("FR", mat);
+                    HighGui.waitKey(10);
 
                     MatOfByte matOfByte = new MatOfByte();
                     Imgcodecs.imencode(".jpg", mat, matOfByte);
@@ -189,15 +190,15 @@ public class VideoEventGenerator implements Runnable {
                     String json = gson.toJson(obj);
 
                     if(cameraType.equals("faceRecog")) {
-                        String xmlFile = String.valueOf(getClass().getClassLoader().getResource("haarcascade_frontalface_alt.xml")).replace("file:","");
-//                        String xmlFile= "C:\\Users\\Administrator\\Desktop\\FR Software\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
+//                        String xmlFile = String.valueOf(getClass().getClassLoader().getResource("haarcascade_frontalface_alt.xml")).replace("file:","");
+                        String xmlFile= "/home/sahil/opencv_build/opencv/data/haarcascades/haarcascade_eye.xml";
                         CascadeClassifier classifier = new CascadeClassifier(xmlFile);
                         MatOfRect faceDetections = new MatOfRect();
                         classifier.detectMultiScale(mat, faceDetections);
                         System.out.println(String.format("Detected %s faces",
                                 faceDetections.toArray().length));
 
-                        if (faceDetections.toArray().length > 0) {
+                        if (faceDetections.toArray().length >= 2) {
                             producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));
                             logger.info("Generated events for cameraId=" + cameraId + " timestamp=" + timestamp + " partition=" + partition);
                         }
