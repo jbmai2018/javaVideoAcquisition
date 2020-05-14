@@ -130,7 +130,7 @@ public class VideoSDGenerator implements Runnable {
             try {
                 if (camera.read(mat)) {
 
-                    Imgproc.resize(mat, mat, new Size(), cameraProperties.getInt("width"), cameraProperties.getInt("height"), Imgproc.INTER_LINEAR);
+                    resize(mat, mat, new Size(), Float.parseFloat(cameraProperties.getString("width")), Float.parseFloat(cameraProperties.getString("height")), Imgproc.INTER_LINEAR);
 //                    Size scaleSize = new Size(768,432);
 //                    resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
 
