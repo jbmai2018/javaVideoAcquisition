@@ -25,6 +25,7 @@ public class VideoStreamCollector {
 
         JTextField iotIdField = new JTextField(30);
         JTextField companyIdField = new JTextField(30);
+        JTextField opencvPathField = new JTextField(30);
 
         JPanel myPanel = new JPanel();
         myPanel.setLayout(new GridLayout(0, 2, 2, 2));
@@ -32,6 +33,8 @@ public class VideoStreamCollector {
         myPanel.add(iotIdField);
         myPanel.add(new JLabel("Company ID:"));
         myPanel.add(companyIdField);
+        myPanel.add(new JLabel("OpenCV Path (Haarcascade):"));
+        myPanel.add(opencvPathField);
 
         int result = JOptionPane.showConfirmDialog(null, myPanel,
                 "JBM Group - AI", JOptionPane.OK_CANCEL_OPTION);
@@ -42,8 +45,11 @@ public class VideoStreamCollector {
             String iotPass = "pass123";
             String companyId = companyIdField.getText();
             String domain = "http://3.7.152.162";
+            String opencvPath = opencvPathField.getText();
 
             ArrayList<JSONObject> cameraEntryArray = new ArrayList<JSONObject>();
+            JSONObject userProperties = new JSONObject();
+            userProperties.put("opencvPath", opencvPath);
 
             HttpURLConnection connection = null;
 
@@ -77,12 +83,12 @@ public class VideoStreamCollector {
             }
 
             // generate event
-            generateIoTEvent(cameraEntryArray);
+            generateIoTEvent(cameraEntryArray, userProperties);
 
         }
     }
 
-    private static void generateIoTEvent(ArrayList<JSONObject> cameraEntryArray) throws Exception {
+    private static void generateIoTEvent(ArrayList<JSONObject> cameraEntryArray, JSONObject userProperties) throws Exception {
 
 //        Logic for using multiple cameras
         for(int pIndex=0;pIndex<cameraEntryArray.size();pIndex++) {
@@ -98,6 +104,7 @@ public class VideoStreamCollector {
             String companyId = cameraEntryArray.get(pIndex).getString("companyId");
             String bootstrapServer = cameraEntryArray.get(pIndex).getString("bootstrapServer");
 
+            JSONObject cameraProperties = cameraEntryArray.get(pIndex);
 
             Thread.sleep(1000);
             if(cameraType.equals("faceRecog")) {
@@ -124,7 +131,7 @@ public class VideoStreamCollector {
 //                rtspLink = "0";
 //                companyId = "MX";
 
-                Thread t = new Thread(new VideoEventGenerator(cameraId, rtspLink, producer, topicForCamera, 0, Integer.parseInt(delay), cameraType, companyId));
+                Thread t = new Thread(new VideoEventGenerator(cameraId, rtspLink, producer, topicForCamera, 0, Integer.parseInt(delay), cameraType, companyId, cameraProperties ,userProperties));
                 t.start();
             }
             else if(cameraType.equals("socialDistance")){
@@ -144,7 +151,7 @@ public class VideoStreamCollector {
 
                 Producer<String, String> producer2 = new KafkaProducer<String, String>(properties);
                 // Closes VideoCapture Object after each frame capture to save memory
-                Thread t = new Thread(new VideoSDGenerator(cameraId, rtspLink, producer2, topicForCamera, partitionForCamera, Integer.parseInt(delay), cameraType, companyId));
+                Thread t = new Thread(new VideoSDGenerator(cameraId, rtspLink, producer2, topicForCamera, partitionForCamera, Integer.parseInt(delay), cameraType, companyId, cameraProperties ,userProperties));
                 t.start();
             }
         }

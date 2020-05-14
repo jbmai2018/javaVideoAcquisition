@@ -9,6 +9,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.opencv.core.*;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -40,8 +41,10 @@ public class VideoSDGenerator implements Runnable {
     private String cameraType;
     private JsonObject networkDowntime;
     private String companyId;
+    private JSONObject cameraProperties;
+    private JSONObject userProperties;
 
-    public VideoSDGenerator(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType, String companyId) {
+    public VideoSDGenerator(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType, String companyId,  JSONObject cameraProperties, JSONObject userProperties) {
         this.cameraId = cameraId;
         this.url = url;
         this.producer = producer;
@@ -49,6 +52,9 @@ public class VideoSDGenerator implements Runnable {
         this.partition = partition;
         this.delay = delay;
         this.cameraType = cameraType;
+        this.companyId = companyId;
+        this.cameraProperties = cameraProperties;
+        this.userProperties = userProperties;
     }
 
     //load OpenCV native lib
@@ -80,11 +86,11 @@ public class VideoSDGenerator implements Runnable {
     public void run() {
         logger.info("Processing cameraId " + cameraId + " with url " + url);
         try {
-            generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
+            generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId, cameraProperties, userProperties);
         } catch (Exception e) {
             logger.error(e.getMessage());
             try {
-                generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
+                generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId,  cameraProperties, userProperties);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -92,7 +98,7 @@ public class VideoSDGenerator implements Runnable {
     }
 
     //generate JSON events for frame
-    private void generateLazyEvent(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType, String companyId) throws Exception {
+    private void generateLazyEvent(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType, String companyId, JSONObject cameraProperties, JSONObject userProperties) throws Exception {
 
         while(true) {
             Thread.sleep(delay);
@@ -110,7 +116,7 @@ public class VideoSDGenerator implements Runnable {
                 Thread.sleep(5000);
                 if (!camera.isOpened()) {
                     logger.info("Error opening cameraId " + cameraId + " with url=" + url + ".Set correct file path or url in camera.url key of property file.");
-                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
+                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId,  cameraProperties, userProperties);
 //                throw new Exception("Error opening cameraId "+cameraId+" with url="+url+".Set correct file path or url in camera.url key of property file.");
                 }
             }
@@ -123,9 +129,8 @@ public class VideoSDGenerator implements Runnable {
 
             try {
                 if (camera.read(mat)) {
-//                    System.out.println(mat);
 
-                    Imgproc.resize(mat, mat, new Size(), 1, 1, Imgproc.INTER_LINEAR);
+                    Imgproc.resize(mat, mat, new Size(), cameraProperties.getInt("width"), cameraProperties.getInt("height"), Imgproc.INTER_LINEAR);
 //                    Size scaleSize = new Size(768,432);
 //                    resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
 
@@ -145,7 +150,7 @@ public class VideoSDGenerator implements Runnable {
                 logger.info("Camera " + cameraId + " Error occured");
                 logger.error(e.getMessage());
                 try {
-                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
+                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId,  cameraProperties, userProperties);
                 } catch (Exception e2) {
                     logger.info("Exiting Camera");
                     camera.release();
@@ -197,7 +202,7 @@ public class VideoSDGenerator implements Runnable {
                     }
                 } catch (Exception e) {
                     logger.info("Error in face detection: " + e);
-                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
+                    generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId,  cameraProperties, userProperties);
                 }
 
                 camera.release();
@@ -205,7 +210,7 @@ public class VideoSDGenerator implements Runnable {
 
             } else {
                 logger.info("Starting Camera" + cameraId);
-                generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId);
+                generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId,  cameraProperties, userProperties);
             }
 
         }
