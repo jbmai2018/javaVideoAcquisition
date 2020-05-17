@@ -100,6 +100,12 @@ public class VideoSDGenerator implements Runnable {
     //generate JSON events for frame
     private void generateLazyEvent(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType, String companyId, JSONObject cameraProperties, JSONObject userProperties) throws Exception {
 
+        Thread.currentThread().setPriority(5);
+
+        String xmlFile;
+        xmlFile = userProperties.getString("opencvPath");
+        System.out.println(xmlFile);
+
         while(true) {
             Thread.sleep(delay);
             System.out.println("cameraId : "+ cameraId);
@@ -117,7 +123,6 @@ public class VideoSDGenerator implements Runnable {
                 if (!camera.isOpened()) {
                     logger.info("Error opening cameraId " + cameraId + " with url=" + url + ".Set correct file path or url in camera.url key of property file.");
                     generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId,  cameraProperties, userProperties);
-//                throw new Exception("Error opening cameraId "+cameraId+" with url="+url+".Set correct file path or url in camera.url key of property file.");
                 }
             }
 
@@ -137,8 +142,6 @@ public class VideoSDGenerator implements Runnable {
                     FrameArrayList frameArrayList = new FrameArrayList(mat, new Timestamp(System.currentTimeMillis()));
                     frameArray.add(frameArrayList);
                     System.out.println("Frame Array Size: " + frameArray.size());
-//                    HighGui.imshow("LazyEvents", frameArray.get(0).mat);
-//                    HighGui.waitKey(1000);
 
                 } else {
                     logger.info(camera.isOpened());
@@ -179,19 +182,16 @@ public class VideoSDGenerator implements Runnable {
                     obj.addProperty("time", timestamp);
                     obj.addProperty("image", Base64.getEncoder().encodeToString(data));
                     obj.addProperty("company", companyId);
-
                     String json = gson.toJson(obj);
 
                     if(cameraType.equals("faceRecog")) {
-                        String xmlFile = String.valueOf(getClass().getClassLoader().getResource("haarcascade_frontalface_alt.xml")).replace("file:","");
-//                        String xmlFile= "C:\\Users\\Administrator\\Desktop\\FR Software\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
                         CascadeClassifier classifier = new CascadeClassifier(xmlFile);
                         MatOfRect faceDetections = new MatOfRect();
                         classifier.detectMultiScale(mat, faceDetections);
                         System.out.println(String.format("Detected %s faces",
                                 faceDetections.toArray().length));
 
-                        if (faceDetections.toArray().length > 0) {
+                        if (faceDetections.toArray().length >= 1) {
                             producer.send(new ProducerRecord<String, String>(topic, partition, cameraId, json), new EventGeneratorCallback(cameraId));
                             logger.info("Generated events for cameraId=" + cameraId + " timestamp=" + timestamp + " partition=" + partition);
                         }
@@ -201,7 +201,7 @@ public class VideoSDGenerator implements Runnable {
                         logger.info("Generated events for cameraId=" + cameraId + " timestamp=" + timestamp + " partition=" + partition);
                     }
                 } catch (Exception e) {
-                    logger.info("Error in face detection: " + e);
+                    logger.info("Error in frame analysis: " + e);
                     generateLazyEvent(cameraId, url, producer, topic, partition, delay, cameraType, companyId,  cameraProperties, userProperties);
                 }
 
@@ -247,6 +247,7 @@ public class VideoSDGenerator implements Runnable {
                 logger.info("topic" + topic + " cameraId=" + camId + " partition=" + rm.partition());
             }
             if (e != null) {
+                logger.info("Producer Error: ");
                 e.printStackTrace();
             }
         }

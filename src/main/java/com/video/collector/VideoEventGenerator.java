@@ -102,8 +102,12 @@ public class VideoEventGenerator implements Runnable {
         }
     }
 
+
+
     //generate JSON events for frame
     private void generateEvent(String cameraId, String url, Producer<String, String> producer, String topic, Integer partition, Integer delay, String cameraType, String companyId, JSONObject cameraProperties, JSONObject userProperties) throws Exception {
+
+        Thread.currentThread().setPriority(10);
 
         String xmlFile;
         xmlFile = userProperties.getString("opencvPath");
@@ -147,12 +151,17 @@ public class VideoEventGenerator implements Runnable {
             ArrayList<FrameArrayList> frameArray = new ArrayList<FrameArrayList>();
             //.toByteArray(); for each element
 
+            Integer frameCount = 0;
+
             while (System.currentTimeMillis() < cal.getTimeInMillis() + delay) {
 //                System.out.println("" + System.currentTimeMillis() + "       start  " + cal.getTimeInMillis() + 1000);
                 try {
                     if (camera.read(mat)) {
-                        FrameArrayList frameArrayList = new FrameArrayList(mat, new Timestamp(System.currentTimeMillis()));
-                        frameArray.add(frameArrayList);
+                        frameCount++;
+                        if(frameCount == 1) {
+                            FrameArrayList frameArrayList = new FrameArrayList(mat, new Timestamp(System.currentTimeMillis()));
+                            frameArray.add(frameArrayList);
+                        }
                     } else {
                         logger.info(camera.isOpened());
                         logger.info("Camera " + cameraId + " No Frame Recieved");
@@ -184,8 +193,8 @@ public class VideoEventGenerator implements Runnable {
 //                    Size scaleSize = new Size(768,432);
 //                    resize(mat, mat, scaleSize , 0, 0, INTER_AREA);
 
-//                    HighGui.imshow("FR", mat);
-//                    HighGui.waitKey(10);
+                    HighGui.imshow("FR", mat);
+                    HighGui.waitKey(10);
 
                     MatOfByte matOfByte = new MatOfByte();
                     Imgcodecs.imencode(".jpg", mat, matOfByte);
